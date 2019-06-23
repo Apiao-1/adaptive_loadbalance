@@ -2,6 +2,8 @@ package com.aliware.tianchi;
 
 import org.apache.dubbo.rpc.listener.CallbackListener;
 import org.apache.dubbo.rpc.service.CallbackService;
+import org.apache.dubbo.rpc.protocol.dubbo.status.ThreadPoolStatusChecker;
+
 
 import java.util.Date;
 import java.util.Map;
@@ -18,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CallbackServiceImpl implements CallbackService {
 
+    private ThreadPoolStatusChecker threadPoolStatusChecker = new ThreadPoolStatusChecker();
+
     public CallbackServiceImpl() {
         timer.schedule(new TimerTask() {
             @Override
@@ -25,9 +29,11 @@ public class CallbackServiceImpl implements CallbackService {
                 if (!listeners.isEmpty()) {
                     for (Map.Entry<String, CallbackListener> entry : listeners.entrySet()) {
                         try {
-                            entry.getValue().receiveServerMsg(System.getProperty("quota") + " " + new Date().toString());
+//                            entry.getValue().receiveServerMsg(System.getProperty("quota") + " " + new Date().toString());
+                            entry.getValue().receiveServerMsg(threadPoolStatusChecker.check().getMessage());
                         } catch (Throwable t1) {
                             listeners.remove(entry.getKey());
+                            t1.printStackTrace();
                         }
                     }
                 }
