@@ -1,5 +1,6 @@
 package com.aliware.tianchi;
 
+import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
@@ -12,28 +13,31 @@ import org.apache.dubbo.rpc.cluster.loadbalance.LeastActiveLoadBalance;
 
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author daofeng.xjf
- *
+ * <p>
  * 负载均衡扩展接口
  * 必选接口，核心接口
  * 此类可以修改实现，不可以移动类或者修改包名
  * 选手需要基于此类实现自己的负载均衡算法
  */
-public class UserLoadBalance extends AbstractLoadBalance{
+public class UserLoadBalance extends AbstractLoadBalance {
 
 //    LeastActiveLoadBalance loadBalance = new LeastActiveLoadBalance();
 
-//    @Override
+    //    @Override
 //    public <T> Invoker<T> select(List<Invoker<T>> invokers, URL url, Invocation invocation) throws RpcException {
 //        return invokers.get(ThreadLocalRandom.current().nextInt(invokers.size()));
 //
 //    }
+    private final CallbackListenerImpl callbackListener = new CallbackListenerImpl();
 
     @Override
-    public  <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
+    public <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
         // Number of invokers
         int length = invokers.size();
         // The least active value of all invokers
@@ -50,6 +54,9 @@ public class UserLoadBalance extends AbstractLoadBalance{
         int firstWeight = 0;
         // Every least active invoker has the same weight value?
         boolean sameWeight = true;
+        int afterWarmup;
+
+        ConcurrentHashMap<String, Integer> poolStatusMap;
 
 
         // Filter out all the least active invokers
@@ -58,10 +65,19 @@ public class UserLoadBalance extends AbstractLoadBalance{
             // Get the active number of the invoke
             int active = RpcStatus.getStatus(invoker.getUrl(), invocation.getMethodName()).getActive();
             // Get the weight of the invoke configuration. The default value is 100.
-            int afterWarmup = getWeight(invoker, invocation);
-            System.out.println(1 + "   " + "invoker: " + i + " active: " + active + " afterWarmup: " + afterWarmup);
-            // save for later use
+//            int afterWarmup = getWeight(invoker, invocation);
+            poolStatusMap = callbackListener.getServerStatusMap().get(invoker.getUrl().getPort());
+//            callbackListener.printServerStatusMap();
+            if (poolStatusMap == null || poolStatusMap.isEmpty()) {
+                afterWarmup = Constants.DEFAULT_WEIGHT;
+            } else {
+//                for (Map.Entry<String, Integer> entry : poolStatusMap.entrySet()) {
+//                    System.out.println("key: " + entry.getKey() + " Value: " + entry.getValue());
+//                }
+                afterWarmup = poolStatusMap.getOrDefault("max", 50);
+            }
             weights[i] = afterWarmup;
+
             // If it is the first invoker or the active number of the invoker is less than the current least active number
             if (leastActive == -1 || active < leastActive) {
                 // Reset the active number of the current invoker to the least active number

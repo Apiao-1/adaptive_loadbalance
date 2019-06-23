@@ -33,12 +33,12 @@ public class CallbackServiceImpl implements CallbackService {
                             entry.getValue().receiveServerMsg(threadPoolStatusChecker.check().getMessage());
                         } catch (Throwable t1) {
                             listeners.remove(entry.getKey());
-                            t1.printStackTrace();
+//                            t1.printStackTrace();
                         }
                     }
                 }
             }
-        }, 0, 5000);
+        }, 0, 1000);
     }
 
     private Timer timer = new Timer();

@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CallbackListenerImpl implements CallbackListener {
 
-    private final Map<Integer, ConcurrentHashMap> serverStatusMap = new ConcurrentHashMap<>();
+    private static Map<Integer, ConcurrentHashMap> serverStatusMap = new ConcurrentHashMap<>();
 
     @Override
     public void receiveServerMsg(String msg) {
@@ -34,13 +34,13 @@ public class CallbackListenerImpl implements CallbackListener {
 //        System.out.println("receive msg from server :" + msg);
 
         parseMessage(msg);
-        printServerStatusMap();
+//        printServerStatusMap();
     }
 
     private void parseMessage(String str) {
         String[] params = str.split(",");
         String[] param;
-        System.out.println(params.length);
+//        System.out.println(params.length);
         ConcurrentHashMap<String, Integer> paramsMap = new ConcurrentHashMap<>();
         for (int i = 1; i < params.length; i++) {
             param = params[i].trim().split(":");
@@ -52,11 +52,15 @@ public class CallbackListenerImpl implements CallbackListener {
         }
     }
 
-    private void printServerStatusMap() {
-        if (serverStatusMap == null || serverStatusMap.isEmpty()) System.out.println("serverStatusMap is empty");
+    public void printServerStatusMap() {
+        if (serverStatusMap == null || serverStatusMap.isEmpty()) System.out.println("serverStatusMap is empty: " + serverStatusMap);
         for (Map.Entry<Integer, ConcurrentHashMap> entry : serverStatusMap.entrySet()) {
             System.out.println("key(port): " + entry.getKey() + " Value: " + entry.getValue());
         }
+    }
+
+    public Map<Integer, ConcurrentHashMap> getServerStatusMap() {
+        return this.serverStatusMap;
     }
 }
 

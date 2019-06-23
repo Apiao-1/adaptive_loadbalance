@@ -28,7 +28,7 @@ public class TestClientFilter implements Filter {
         URL url = invoker.getUrl();
         String methodName = invocation.getMethodName();
 
-        System.out.println(2 + "   " + methodName);
+//        System.out.println(2 + "   " + methodName);
         int max = invoker.getUrl().getMethodParameter(methodName, Constants.ACTIVES_KEY, 0);
         RpcStatus count = RpcStatus.getStatus(invoker.getUrl(), invocation.getMethodName());
 //        System.out.println(url +" " + invocation.getArguments() + " ")
@@ -65,7 +65,6 @@ public class TestClientFilter implements Filter {
             throw t;
         } finally {
             count.endCount(url, methodName, System.currentTimeMillis() - begin, isSuccess);
-            System.out.println(3);
             if (max > 0) {
                 synchronized (count) {
                     count.notifyAll();

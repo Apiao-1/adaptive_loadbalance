@@ -23,6 +23,7 @@ public class TestServerFilter implements Filter {
             Result result = invoker.invoke(invocation);
             return result;
         }catch (Exception e){
+            e.printStackTrace();
             throw e;
         }
 
